@@ -11,7 +11,7 @@ export const PaymentProvider = ({ children }) => {
   const createCheckoutSession = async (orderId) => {
     try {
       setLoading(true);
-      const { data: { url } } = await api.post("/payment/create-checkout-session", { orderId });
+      const { data: { url } } = await api.post("/checkout", { orderId });
       window.location.href = url;
       return true;
     } catch (error) {
@@ -29,7 +29,7 @@ export const PaymentProvider = ({ children }) => {
       setLoading(true);
       
       // Create order first
-      const { data: order } = await api.post("/orders/create");
+      const { data: order } = await api.post("/create");
       
       if (paymentMethod === 'stripe') {
         // Redirect to Stripe checkout

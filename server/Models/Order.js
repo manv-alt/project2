@@ -18,11 +18,23 @@ const OrderSchema = new moongoose.Schema({
    totalAmount: Number,
   status: {
     type: String,
-     enum: ["pending", "paid", "shipped", "delivered", "cancelled"],
+     enum: ["confirmed","pending", "paid", "shipped", "delivered", "cancelled"],
     default: "pending",
   },
+paymentMethod: {
+    type: String,
+    enum: ["stripe", "cod"],
+    default: "cod",
+},
 paymentIntentId:{
     type: String,
+},
+shippingAddress: {
+    address: String,
+    city: String,
+    state: String,
+    postalCode: String,
+    country: String,
 },
 
 

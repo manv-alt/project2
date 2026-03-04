@@ -13,7 +13,8 @@ export const OrderProvider = ({ children }) => {
   const fetchAllOrders = async () => {
     try {
       setLoading(true);
-      const { data } = await api.get("/orders/all");
+      // Don't manually set headers - axios interceptor handles token
+      const { data } = await api.get("/all");
       setOrders(data || []);
     } catch (error) {
       console.error("Failed to fetch orders:", error);
@@ -27,7 +28,8 @@ export const OrderProvider = ({ children }) => {
   const fetchMyOrders = async () => {
     try {
       setLoading(true);
-      const { data } = await api.get("/orders/myorders");
+      // Don't manually set headers - axios interceptor handles token
+      const { data } = await api.get("/myorders");
       setMyOrders(data || []);
     } catch (error) {
       console.error("Failed to fetch orders:", error);
@@ -40,7 +42,8 @@ export const OrderProvider = ({ children }) => {
   // Update order status (Admin)
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      const { data } = await api.put(`/orders/updatestatus/${orderId}`, { status: newStatus });
+      // Don't manually set headers - axios interceptor handles token
+      const { data } = await api.put(`/updatestatus/${orderId}`, { status: newStatus });
       setOrders(orders.map((o) => (o._id === orderId ? data : o)));
       toast.success(`Order status updated to ${newStatus}`);
       return true;
@@ -54,7 +57,8 @@ export const OrderProvider = ({ children }) => {
   // Create new order
   const createOrder = async (orderData) => {
     try {
-      const { data: order } = await api.post("/orders/create", orderData);
+      // Don't manually set headers - axios interceptor handles token
+      const { data: order } = await api.post("/create", orderData);
       toast.success("Order created successfully");
       return order;
     } catch (error) {

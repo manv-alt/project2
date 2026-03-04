@@ -8,9 +8,16 @@ const Cart = ({ open, onOpenChange }) => {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const { cartItems, updateCart, removeFromCart, clearCart, loading } = useCart();
 
+  // Filter out items where product was deleted
+  const validCartItems = cartItems?.filter(item => item.productId) || [];
+
   const calculateTotal = (items) => {
     if (!items) return 0;
-    return items.reduce((t, i) => t + i.productId.price * i.quantity, 0);
+    return items.reduce((t, i) => {
+      // Skip items where product was deleted
+      if (!i.productId) return t;
+      return t + (i.productId.price || 0) * i.quantity;
+    }, 0);
   };
 
   const getProductImage = (img) => {
@@ -19,7 +26,7 @@ const Cart = ({ open, onOpenChange }) => {
     return `http://localhost:5000${img}`;
   };
 
-  const total = calculateTotal(cartItems);
+  const total = calculateTotal(validCartItems);
 
   const handleCheckoutSuccess = () => {
     clearCart();
@@ -37,7 +44,7 @@ const Cart = ({ open, onOpenChange }) => {
               </div>
               My Cart
               <span className="ml-2 bg-gray-100 text-gray-600 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                {cartItems?.length || 0} items
+                {validCartItems.length || 0} items
               </span>
             </DialogTitle>
           </DialogHeader>
@@ -48,7 +55,7 @@ const Cart = ({ open, onOpenChange }) => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
                 <p className="text-gray-500 text-sm">Loading your cart...</p>
               </div>
-            ) : !cartItems || cartItems.length === 0 ? (
+            ) : validCartItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
                 <div className="bg-gray-50 p-6 rounded-full">
                   <ShoppingBag className="w-12 h-12 text-gray-300" />
@@ -62,7 +69,7 @@ const Cart = ({ open, onOpenChange }) => {
                 </button>
               </div>
             ) : (
-              cartItems.map((item) => (
+              validCartItems.map((item) => (
                 <div key={item._id} className="flex gap-4 bg-white p-3 rounded-xl border border-gray-100 hover:border-green-100 hover:shadow-sm transition-all duration-200 group">
                   <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
                     <img
@@ -111,7 +118,7 @@ const Cart = ({ open, onOpenChange }) => {
             )}
           </div>
 
-          {cartItems && cartItems.length > 0 && (
+          {validCartItems.length > 0 && (
             <div className="p-6 bg-white border-t space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between text-sm text-gray-600">
@@ -128,7 +135,10 @@ const Cart = ({ open, onOpenChange }) => {
                 </div>
               </div>
               <button
-                onClick={() => setCheckoutOpen(true)}
+                onClick={() => {
+                  onOpenChange(false); // Close cart
+                  setCheckoutOpen(true); // Open checkout
+                }}
                 className="w-full bg-green-600 text-white py-3.5 rounded-xl font-semibold hover:bg-green-700 active:scale-[0.98] transition-all duration-200 shadow-lg shadow-green-200 flex items-center justify-center gap-2"
                 disabled={!cartItems || cartItems.length === 0}
               >
@@ -142,8 +152,12 @@ const Cart = ({ open, onOpenChange }) => {
 
       <Checkout
         open={checkoutOpen}
-        onOpenChange={setCheckoutOpen}
-        cartItems={cartItems}
+        onClose={() => setCheckoutOpen(false)}
+        onBack={() => {
+          setCheckoutOpen(false);
+          onOpenChange(true);
+        }}
+        cartItems={validCartItems}
         onSuccess={handleCheckoutSuccess}
       />
     </div>

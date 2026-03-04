@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { PackageCheck, Loader2, Eye } from "lucide-react";
 import { useOrder } from "@/context/OrderContext";
-import { toast } from "sonner";
 
 const statusColors = {
   pending: "bg-yellow-100 text-yellow-700",
@@ -14,10 +13,9 @@ const statusColors = {
 const statusOptions = ["pending", "paid", "shipped", "delivered", "cancelled"];
 
 const Orders = () => {
+  const { orders, loading, fetchAllOrders, updateOrderStatus } = useOrder();
   const [filter, setFilter] = useState("All");
   const [selectedOrder, setSelectedOrder] = useState(null);
-
-  const { orders, loading, fetchAllOrders, updateOrderStatus } = useOrder();
 
   useEffect(() => {
     fetchAllOrders();
@@ -28,19 +26,12 @@ const Orders = () => {
       ? orders
       : orders.filter((o) => o.status === filter);
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString("en-IN", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  const formatDate = (date) =>
+    new Date(date).toLocaleString("en-IN");
 
   if (loading) {
     return (
-      <div className="p-6 bg-[#f7f5f3] min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="w-8 h-8 animate-spin text-green-600" />
       </div>
     );
@@ -62,15 +53,15 @@ const Orders = () => {
           <option value="All">All Orders</option>
           {statusOptions.map((s) => (
             <option key={s} value={s}>
-              {s.charAt(0).toUpperCase() + s.slice(1)}
+              {s.toUpperCase()}
             </option>
           ))}
         </select>
       </div>
 
-      {/* ORDER CARDS */}
+      {/* ORDERS */}
       {filteredOrders.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center text-gray-500 py-10">
           No orders found
         </div>
       ) : (
@@ -78,45 +69,49 @@ const Orders = () => {
           {filteredOrders.map((order) => (
             <div
               key={order._id}
-              className="bg-white rounded-xl p-4 shadow flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+              className="bg-white rounded-xl p-4 shadow flex justify-between items-center"
             >
-              {/* LEFT */}
               <div>
-                <h3 className="font-semibold text-lg">#{order._id.slice(-8).toUpperCase()}</h3>
+                <h3 className="font-semibold">
+                  #{order._id.slice(-8).toUpperCase()}
+                </h3>
                 <p className="text-sm text-gray-600">
-                  {order.user?.name || "Guest"} • {order.user?.email || "No email"} • {order.items?.length || 0} items
+                  {order.user?.name} • {order.user?.email}
                 </p>
-                <p className="text-sm font-medium">
-                  ₹{order.totalAmount} • {order.status}
+                <p className="font-medium">
+                  ₹{order.totalPrice}
                 </p>
                 <p className="text-xs text-gray-400">
                   {formatDate(order.createdAt)}
                 </p>
               </div>
 
-              {/* RIGHT */}
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setSelectedOrder(order)}
-                  className="text-blue-600 hover:text-blue-800 p-2"
-                  title="View Details"
+                  className="text-blue-600"
                 >
                   <Eye size={18} />
                 </button>
+
                 <span
-                  className={`text-xs px-3 py-1 rounded-full ${statusColors[order.status] || "bg-gray-100 text-gray-700"}`}
+                  className={`text-xs px-3 py-1 rounded-full ${
+                    statusColors[order.status]
+                  }`}
                 >
-                  {order.status?.toUpperCase() || "PENDING"}
+                  {order.status.toUpperCase()}
                 </span>
 
                 <select
-                  value={order.status || "pending"}
-                  onChange={(e) => updateOrderStatus(order._id, e.target.value)}
+                  value={order.status}
+                  onChange={(e) =>
+                    updateOrderStatus(order._id, e.target.value)
+                  }
                   className="border px-2 py-1 rounded text-sm"
                 >
                   {statusOptions.map((s) => (
                     <option key={s} value={s}>
-                      {s.charAt(0).toUpperCase() + s.slice(1)}
+                      {s.toUpperCase()}
                     </option>
                   ))}
                 </select>
@@ -126,74 +121,40 @@ const Orders = () => {
         </div>
       )}
 
-      {/* ORDER DETAIL MODAL */}
+      {/* MODAL */}
       {selectedOrder && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-[90%] max-w-lg max-h-[80vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <h2 className="text-lg font-semibold">
-                  Order Details
-                </h2>
-                <button
-                  onClick={() => setSelectedOrder(null)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  ✕
-                </button>
-              </div>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-xl w-[500px] max-h-[80vh] overflow-y-auto">
+            <h2 className="font-semibold mb-4">Order Details</h2>
 
-              <div className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Order ID</span>
-                  <span className="font-medium">#{selectedOrder._id.slice(-8).toUpperCase()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Customer</span>
-                  <span className="font-medium">{selectedOrder.user?.name || "Guest"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Email</span>
-                  <span className="font-medium">{selectedOrder.user?.email || "N/A"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Status</span>
-                  <span className={`px-2 py-1 rounded-full text-xs ${statusColors[selectedOrder.status]}`}>
-                    {selectedOrder.status?.toUpperCase()}
+            <p><strong>User:</strong> {selectedOrder.user?.name}</p>
+            <p><strong>Email:</strong> {selectedOrder.user?.email}</p>
+            <p><strong>Total:</strong> ₹{selectedOrder.totalPrice}</p>
+            <p><strong>Status:</strong> {selectedOrder.status}</p>
+
+            <div className="mt-4">
+              <h3 className="font-semibold mb-2">Items</h3>
+              {selectedOrder.orderItems.map((item, i) => (
+                <div key={i} className="flex justify-between border-b py-2">
+                  <div>
+                    {item.product?.name}
+                    <p className="text-sm text-gray-500">
+                      {item.qty} × ₹{item.price}
+                    </p>
+                  </div>
+                  <span>
+                    ₹{item.qty * item.price}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Total Amount</span>
-                  <span className="font-semibold text-lg">₹{selectedOrder.totalAmount}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Date</span>
-                  <span className="font-medium">{formatDate(selectedOrder.createdAt)}</span>
-                </div>
-
-                <div className="border-t pt-4 mt-4">
-                  <h3 className="font-semibold mb-2">Items</h3>
-                  {selectedOrder.items?.map((item, idx) => (
-                    <div key={idx} className="flex justify-between py-2 border-b last:border-0">
-                      <div>
-                        <p className="font-medium">{item.productId?.name || "Product"}</p>
-                        <p className="text-sm text-gray-500">Qty: {item.quantity} × ₹{item.price}</p>
-                      </div>
-                      <span className="font-medium">₹{item.quantity * item.price}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex justify-end mt-6">
-                <button
-                  onClick={() => setSelectedOrder(null)}
-                  className="px-4 py-2 border rounded-lg hover:bg-gray-100"
-                >
-                  Close
-                </button>
-              </div>
+              ))}
             </div>
+
+            <button
+              onClick={() => setSelectedOrder(null)}
+              className="mt-4 w-full border py-2 rounded"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

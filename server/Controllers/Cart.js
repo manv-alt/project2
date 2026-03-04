@@ -1,7 +1,28 @@
 import CartModel from "../Models/Cartmodal.js";
 import Product from "../Models/Product.js";
 
+// Clean up cart items where product no longer exists
+const cleanupInvalidCartItems = async (userId) => {
+  const cartItems = await CartModel.find({ user: userId });
+  const invalidItemIds = [];
+  
+  for (const item of cartItems) {
+    const product = await Product.findById(item.productId);
+    if (!product) {
+      invalidItemIds.push(item._id);
+    }
+  }
+  
+  if (invalidItemIds.length > 0) {
+    await CartModel.deleteMany({ _id: { $in: invalidItemIds } });
+    console.log(`Cleaned up ${invalidItemIds.length} invalid cart items`);
+  }
+};
+
 const getCartContents = async (userId) => {
+  // Clean up invalid cart items first
+  await cleanupInvalidCartItems(userId);
+  
   const cartItems = await CartModel.find({ user: userId }).populate("productId");
   if (!cartItems.length) {
     return {
@@ -17,6 +38,11 @@ const getCartContents = async (userId) => {
   let totalPrice = 0;
 
   cartItems.forEach((item) => {
+    // Skip items where product was deleted (productId is null)
+    if (!item.productId) {
+      console.warn(`Cart item with missing product found: ${item._id}`);
+      return;
+    }
     totalQuantity += item.quantity;
     totalPrice += item.productId.price * item.quantity;
   });
@@ -37,6 +63,8 @@ export const addToCart = async (req, res) => {
   try {
     const { quantity, productId } = req.body;
     const userId = req.user.id;
+
+    console.log("addToCart called:", { userId, quantity, productId });
 
     if (!quantity || quantity <= 0) {
       return res
@@ -66,6 +94,7 @@ export const addToCart = async (req, res) => {
     const cartData = await getCartContents(userId);
     res.status(200).json(cartData);
   } catch (error) {
+    console.error("addToCart error:", error);
     res.status(500).json({ error: error.message });
   }
 };

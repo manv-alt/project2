@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useOrder } from "@/context/OrderContext";
 import api from "@/lib/axios";
 import {
   Dialog,
@@ -37,6 +38,7 @@ import { toast } from "sonner";
 const ProfileModal = ({ open, onOpenChange, initialView = "profile" }) => {
   const { user: authUser, setUser: setAuthUser } = useAuth();
   const [view, setView] = useState(initialView); // profile, edit, addresses
+  const { myOrders, fetchMyOrders } = useOrder();
 
   const [user, setUser] = useState(null);
   const [addresses, setAddresses] = useState([]);
@@ -68,7 +70,11 @@ const ProfileModal = ({ open, onOpenChange, initialView = "profile" }) => {
     }
   }, [open, initialView]);
 
-
+useEffect(() => {
+    if (view === "orders") {
+      fetchMyOrders();
+    }
+  }, [view]);
   const fetchData = async () => {
     try {
       setLoading(true);

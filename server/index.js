@@ -66,10 +66,10 @@ app.use("/api", Categoryroute);
  app.use("/api/cart", Cartroute);
 
 // Order routes
- app.use("/api/orders", Orderroute);
+ app.use("/api", Orderroute);
 
 // Payment routes
- app.use("/api/payment", Paymentsroute);
+ app.use("/api", Paymentsroute);
 
 // Inventory routes
  app.use("/api/inventory", Inventoryroute);

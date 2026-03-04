@@ -15,28 +15,33 @@ export const webhookController = async (req, res) => {
       process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err) {
-    console.error(`Webhook Error: ${err.message}`);
+    console.error("Webhook Error:", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // Payment success
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
-
-    const orderId = session.metadata.orderId; // Make sure this matches metadata in createCheckoutSession
+    const orderId = session.metadata.orderId;
 
     try {
-      await OrderModel.findByIdAndUpdate(orderId, {
-        status: "paid",
-        paymentIntentId: session.payment_intent,
-      });
+      const order = await OrderModel.findById(orderId);
 
-      // Reduce stock from inventory
-      await reduceStockAfterOrder(orderId);
-      io.emit("dashboardUpdate"); // Notify dashboard of changes
+      if (!order || order.status === "paid") {
+        return res.json({ received: true });
+      }
+
+       for (const item of order.items) {
+        await reduceStockService(item.productId, item.quantity);
+      }
+
+      order.status = "paid";
+      order.paymentIntentId = session.payment_intent;
+      await order.save();
+
+      if (io) io.emit("dashboardUpdate");
+
     } catch (error) {
-      console.error(`Error processing successful payment for order ${orderId}:`, error);
-      // You might want to handle this error, e.g., by flagging the order for manual review.
+      console.error("Webhook processing error:", error);
     }
   }
 

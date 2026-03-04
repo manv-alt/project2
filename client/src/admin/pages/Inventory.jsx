@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Loader2, Upload, FileSpreadsheet } from "lucide-react";
 import { useInventory } from "@/context/InventoryContext";
 import { toast } from "sonner";
+ import api from "@/lib/axios";
 
 export default function Inventory() {
   const [openModal, setOpenModal] = useState(false);
@@ -41,7 +42,19 @@ export default function Inventory() {
       setSubmitting(false);
     }
   };
+const handleDelete = async (id) => {
+  const confirmDelete = window.confirm("Are you sure you want to delete this product?");
+  if (!confirmDelete) return;
 
+  try {
+    await api.delete(`/product/${id}`)
+    toast.success("Product deleted successfully");
+    fetchAll(); // refresh inventory list
+  } catch (error) {
+    console.error("Delete error:", error);
+    toast.error("Failed to delete product");
+  }
+};
   const handleExcelFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -146,12 +159,13 @@ export default function Inventory() {
                 <th>Stock</th>
                 <th>Price</th>
                 <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {inventory.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="p-8 text-center text-gray-500">
+                  <td colSpan="6" className="p-8 text-center text-gray-500">
                     No inventory items found. Add stock to get started.
                   </td>
                 </tr>
@@ -179,6 +193,14 @@ export default function Inventory() {
                         <span className={`px-2 py-1 rounded-full text-xs ${statusInfo.color}`}>
                           {statusInfo.label}
                         </span>
+                      </td>
+                      <td>
+                        <button
+                          onClick={() => handleDelete(item._id)}
+                          className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   );

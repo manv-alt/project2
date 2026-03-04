@@ -126,6 +126,10 @@ const deleteProduct = async (req, res) => {
       }
     }
 
+    // Also delete the inventory document for this product
+    const Inventory = (await import("../Models/Inventory.js")).default;
+    await Inventory.deleteOne({ productId: req.params.id });
+
     res.status(200).json({
       success: true,
       message: "Product deleted successfully",
