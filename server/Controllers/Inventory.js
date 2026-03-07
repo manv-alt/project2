@@ -2,6 +2,7 @@ import asyncHandler from "../Middleware/Asynhandler.js";
 import Inventory from "../Models/Inventory.js";
 import Product from "../Models/Product.js";
 import OrderModel from "../Models/Order.js";
+import { createNotification } from "./Admin.js";
 import XLSX from "xlsx";
 import fs from "fs";
 
@@ -40,6 +41,8 @@ const reduceStockService = async (productId, quantity) => {
     throw new Error(`Inventory not found for product ${productId}`);
   }
 
+  const previousQuantity = inventory.quantity;
+  
   if (inventory.quantity < quantity) {
     console.warn(`Stock issue for product ${productId}. Requested: ${quantity}, Available: ${inventory.quantity}. Setting stock to 0.`);
     inventory.quantity = 0;
@@ -59,6 +62,16 @@ const reduceStockService = async (productId, quantity) => {
   await Product.findByIdAndUpdate(productId, {
     availabilityStatus: newStatus,
   });
+
+  // Check for low stock notification (only when stock drops to <= 5)
+  if (inventory.quantity <= 5 && inventory.quantity > 0) {
+    const product = await Product.findById(productId);
+    await createNotification(
+      `Product ${product?.name || 'Unknown'} stock is low (${inventory.quantity} remaining)`,
+      "low_stock",
+      productId
+    );
+  }
 
   return inventory;
 };

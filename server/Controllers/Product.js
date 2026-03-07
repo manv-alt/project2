@@ -1,5 +1,6 @@
 import upload from "../Middleware/Upploads.js";
 import Product from "../Models/Product.js";
+import Category from "../Models/Category.js";
 import fs from"fs";
 import path from"path";
 
@@ -36,6 +37,16 @@ const addproduct = async (req, res) => {
       return res.status(400).json({ message: "Please select a category" });
     }
 
+    // Find category by ID or slug
+    let categoryDoc = await Category.findById(categoryVal);
+    if (!categoryDoc) {
+      // Try finding by slug
+      categoryDoc = await Category.findOne({ slug: categoryVal });
+    }
+    if (!categoryDoc) {
+      return res.status(400).json({ message: "Invalid category selected" });
+    }
+
     // Handle image - make it optional but validate if provided
     let imagePath = null;
     if (req.file) {
@@ -45,10 +56,13 @@ const addproduct = async (req, res) => {
     const newProduct = await Product.create({
       name: nameVal,
       price: parseFloat(priceVal),
-      category: categoryVal,
+      category: categoryDoc._id,
       unit: unitVal,
       img: imagePath,
     });
+
+    // Populate category before returning
+    await newProduct.populate('category', 'name slug');
 
     res.status(201).json({ 
       success: true,
@@ -68,11 +82,39 @@ const addproduct = async (req, res) => {
 }
 const getProducts = async (req, res) => {
   try {
-    const products = await Product.find().sort({ createdAt: -1 });
+    const products = await Product.find().populate('category', 'name slug').sort({ createdAt: -1 });
     res.status(200).json({ products: products })
   } catch (error) {
     res.status(500).json({ error: "Failed to get products" })
 
+  }
+}
+
+// Search products by name
+const searchProducts = async (req, res) => {
+  try {
+    const { q } = req.query;
+    
+    if (!q || q.trim().length < 2) {
+      return res.status(400).json({ message: "Search query must be at least 2 characters" });
+    }
+
+    const searchRegex = new RegExp(q.trim(), 'i');
+    
+    const products = await Product.find({
+      $or: [
+        { name: searchRegex },
+        { description: searchRegex }
+      ]
+    })
+    .populate('category', 'name slug')
+    .limit(10)
+    .sort({ createdAt: -1 });
+
+    res.status(200).json({ products, success: true });
+  } catch (error) {
+    console.log("SEARCH ERROR:", error);
+    res.status(500).json({ message: "Failed to search products" });
   }
 }
 // const getproductbyid=async(req,res)=>{
@@ -138,4 +180,25 @@ const deleteProduct = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-export { addproduct, getProducts, updateproduct, deleteProduct }  
+// Get random products for home page
+const getRandomProducts = async (req, res) => {
+  try {
+    const size = parseInt(req.query.size) || 10;
+    const randomProducts = await Product.aggregate([
+      { $sample: { size: Math.min(size, 20) } }
+    ]);
+    
+    // Populate category info
+    await Product.populate(randomProducts, { path: 'category', select: 'name slug' });
+    
+    res.status(200).json({ 
+      success: true, 
+      products: randomProducts 
+    });
+  } catch (error) {
+    console.log("RANDOM PRODUCTS ERROR:", error);
+    res.status(500).json({ message: "Failed to get random products" });
+  }
+};
+
+export { addproduct, getProducts, updateproduct, deleteProduct, searchProducts, getRandomProducts }

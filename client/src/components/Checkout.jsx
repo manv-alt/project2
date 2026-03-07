@@ -97,12 +97,20 @@ const totalAmount = totalPrice + deliveryCharge + platformFee;
     try {
       setLoading(true);
 
+      // STRIPE FLOW: Create checkout session directly (no pre-order)
+      if (paymentMethod === "stripe") {
+        // The backend will:
+        // 1. Read cart from database
+        // 2. Validate stock
+        // 3. Create Stripe session with userId in metadata
+        // 4. NOT create order, NOT reduce stock, NOT clear cart
+        // Order will be created in webhook AFTER successful payment
+        await createCheckoutSession();
+        return;
+      }
+
+      // COD FLOW: Create order directly
       const orderData = {
-        orderItems: validItems.map((item) => ({
-          product: item.productId._id,
-          qty: item.quantity,
-          price: item.productId.price,
-        })),
         shippingAddress: {
           address: profile.address,
           city: profile.city,
@@ -110,26 +118,16 @@ const totalAmount = totalPrice + deliveryCharge + platformFee;
           postalCode: profile.postalCode,
           country: profile.country,
         },
-        paymentMethod,
-        totalAmount,
-        deliveryCharge,
-        platformFee,
-        totalPrice: totalAmount,
+        paymentMethod: "cod",
       };
 
-      const order = await createOrder(orderData);
-
-      if (paymentMethod === "stripe") {
-        await createCheckoutSession(order._id);
-        return;
-      }
-
+      await createOrder(orderData);
       clearCart();
       alert("Order Placed Successfully");
       onClose();
     } catch (error) {
       console.error("Order error:", error);
-      alert("Something went wrong");
+      alert(error.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }

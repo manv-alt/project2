@@ -1,6 +1,6 @@
 
-import moongoose from "mongoose";
-const ProductSchema = new moongoose.Schema({
+import mongoose from "mongoose";
+const ProductSchema = new mongoose.Schema({
    
  name: {
     type: String,
@@ -20,8 +20,14 @@ const ProductSchema = new moongoose.Schema({
     default: "",
   },
    category: {
-    type:String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Category",
     required: true,
+  },
+  productType: {
+    type: String,
+    enum: ["weight", "packet"],
+    default: "packet",
   },
    availabilityStatus: {
       type: String,
@@ -29,12 +35,7 @@ const ProductSchema = new moongoose.Schema({
       default: "inStock",
     },
 
-  //   isActive: {
-  //     type: Boolean,
-  //     default: true,
-  //   },
-
 
 })
-const Product = moongoose.model('Products', ProductSchema);
+const Product = mongoose.model('Products', ProductSchema);
 export default Product;

@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 import Checkout from "./Checkout";
 
 const Cart = ({ open, onOpenChange }) => {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const { cartItems, updateCart, removeFromCart, clearCart, loading } = useCart();
+  const { user, setLoginRedirect, setLoginModalOpen } = useAuth();
 
   // Filter out items where product was deleted
   const validCartItems = cartItems?.filter(item => item.productId) || [];
@@ -136,6 +138,11 @@ const Cart = ({ open, onOpenChange }) => {
               </div>
               <button
                 onClick={() => {
+                  if (!user) {
+                    onOpenChange(false);
+                    setLoginRedirect("checkout");
+                    return;
+                  }
                   onOpenChange(false); // Close cart
                   setCheckoutOpen(true); // Open checkout
                 }}

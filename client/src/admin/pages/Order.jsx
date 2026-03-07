@@ -78,8 +78,11 @@ const Orders = () => {
                 <p className="text-sm text-gray-600">
                   {order.user?.name} • {order.user?.email}
                 </p>
+                <p className="text-sm">
+                  Payment: {order.paymentMethod?.toUpperCase()}
+                </p>
                 <p className="font-medium">
-                  ₹{order.totalPrice}
+                  ₹{order.totalAmount}
                 </p>
                 <p className="text-xs text-gray-400">
                   {formatDate(order.createdAt)}
@@ -127,23 +130,22 @@ const Orders = () => {
           <div className="bg-white p-6 rounded-xl w-[500px] max-h-[80vh] overflow-y-auto">
             <h2 className="font-semibold mb-4">Order Details</h2>
 
-            <p><strong>User:</strong> {selectedOrder.user?.name}</p>
-            <p><strong>Email:</strong> {selectedOrder.user?.email}</p>
-            <p><strong>Total:</strong> ₹{selectedOrder.totalPrice}</p>
+            <p><strong>Payment:</strong> {selectedOrder.paymentMethod?.toUpperCase()}</p>
+            <p><strong>Total:</strong> ₹{selectedOrder.totalAmount}</p>
             <p><strong>Status:</strong> {selectedOrder.status}</p>
 
             <div className="mt-4">
               <h3 className="font-semibold mb-2">Items</h3>
-              {selectedOrder.orderItems.map((item, i) => (
+              {selectedOrder.items?.map((item, i) => (
                 <div key={i} className="flex justify-between border-b py-2">
                   <div>
-                    {item.product?.name}
+                    {item.productId?.name}
                     <p className="text-sm text-gray-500">
-                      {item.qty} × ₹{item.price}
+                      {item.quantity} × ₹{item.price}
                     </p>
                   </div>
                   <span>
-                    ₹{item.qty * item.price}
+                    ₹{item.quantity * item.price}
                   </span>
                 </div>
               ))}

@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { LayoutGrid, List, Plus, Pencil, Trash2 } from "lucide-react";
 import { useProduct } from "@/context/ProductContext";
+import { useCategory } from "@/context/CategoryContext";
 
 const Product = () => {
   const [view, setView] = useState("grid");
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
+  const [subcategory, setSubcategory] = useState("All");
   
   // Loading state for form submission
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,6 +23,39 @@ const Product = () => {
   const [successMsg, setSuccessMsg] = useState("");
 
   const { products, addProduct, updateProduct, deleteProduct } = useProduct();
+  const { categories, fetchCategories } = useCategory();
+
+  // Get parent categories (for dropdown)
+  const parentCategories = categories.filter(cat => !cat.parent);
+  
+  // Get all subcategories
+  const subcategories = categories.filter(cat => cat.parent);
+  
+  // Get subcategories based on selected parent
+  const getSubcategories = (parentId) => {
+    return categories.filter(cat => cat.parent === parentId);
+  };
+
+  // Get category display name - handle both object and string
+  const getCategoryDisplayName = (product) => {
+    if (product.category && typeof product.category === 'object') {
+      return product.category.name;
+    }
+    return product.category || 'Uncategorized';
+  };
+
+  // Get category slug for filtering
+  const getCategorySlug = (product) => {
+    if (product.category && typeof product.category === 'object') {
+      return product.category.slug;
+    }
+    return product.category?.toLowerCase().replace(/\s+/g, '-') || '';
+  };
+
+  // Fetch categories on mount
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   const [formData, setFormData] = useState({
     id: null,
@@ -252,10 +287,29 @@ const Product = () => {
     setSuccessMsg("");
   };
 
-  // Filter products
+  // Filter products - handle both populated object and legacy string (case-insensitive)
   const filteredProducts = products.filter((p) => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
-    const matchCategory = category === "All" || p.category === category;
+    
+    let matchCategory = false;
+    
+    if (category === "All" || category === undefined || category === "") {
+      matchCategory = true;
+    } else if (p.category && typeof p.category === 'object') {
+      // Handle populated category (object with name and _id) - case insensitive
+      const productCatName = p.category.name?.toLowerCase();
+      const productCatId = p.category._id?.toString();
+      
+      // Find the selected category to get its _id
+      const selectedCat = categories.find(cat => cat.name.toLowerCase() === category.toLowerCase());
+      const selectedCatId = selectedCat?._id?.toString();
+      
+      matchCategory = productCatId === selectedCatId || productCatName === category.toLowerCase();
+    } else {
+      // Handle legacy string category - case insensitive
+      matchCategory = p.category?.toLowerCase() === category.toLowerCase();
+    }
+    
     return matchSearch && matchCategory;
   });
 
@@ -306,13 +360,20 @@ const Product = () => {
 
       {/* CATEGORY PILLS */}
       <div className="flex gap-2 flex-wrap mb-6">
-        {["All", "Vegetables", "Fruits", "Dairy", "Snacks", "Staples"].map((cat) => (
+        <button
+          key="All"
+          onClick={() => setCategory("All")}
+          className={`px-4 py-1.5 rounded-full text-sm border ${category === "All" ? "bg-green-600 text-white" : "bg-white hover:bg-green-50"}`}
+        >
+          All
+        </button>
+        {categories.map((cat) => (
           <button
-            key={cat}
-            onClick={() => setCategory(cat)}
-            className={`px-4 py-1.5 rounded-full text-sm border ${category === cat ? "bg-green-600 text-white" : "bg-white hover:bg-green-50"}`}
+            key={cat._id}
+            onClick={() => setCategory(cat.name)}
+            className={`px-4 py-1.5 rounded-full text-sm border ${category === cat.name ? "bg-green-600 text-white" : "bg-white hover:bg-green-50"}`}
           >
-            {cat}
+            {cat.name}
           </button>
         ))}
       </div>
@@ -332,7 +393,7 @@ const Product = () => {
                 )}
                 <h3 className="font-semibold">{p.name}</h3>
                 <p className="text-sm text-gray-600">₹ {p.price} / {p.unit}</p>
-                <p className="text-xs text-gray-500">{p.category}</p>
+                <p className="text-xs text-gray-500">{getCategoryDisplayName(p)}</p>
                 <div className="flex justify-between mt-3 text-sm">
                   <button onClick={() => handleEdit(p)} className="flex items-center gap-1 text-blue-600 hover:text-blue-800">
                     <Pencil size={14} /> Edit
@@ -363,7 +424,7 @@ const Product = () => {
                   )}
                   <div>
                     <p className="font-medium">{p.name}</p>
-                    <p className="text-xs text-gray-500">₹ {p.price} / {p.unit} • {p.category}</p>
+                    <p className="text-xs text-gray-500">₹ {p.price} / {p.unit} • {getCategoryDisplayName(p)}</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
@@ -416,11 +477,20 @@ const Product = () => {
                   disabled={isSubmitting}
                 >
                   <option value="">Select Category *</option>
-                  <option value="Vegetables">Vegetables</option>
-                  <option value="Fruits">Fruits</option>
-                  <option value="Dairy">Dairy</option>
-                  <option value="Snacks">Snacks</option>
-                  <option value="Staples">Staples</option>
+                  {parentCategories.map((cat) => (
+                    <option key={cat._id} value={cat._id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                  {subcategories.length > 0 && (
+                    <optgroup label="Subcategories">
+                      {subcategories.map((cat) => (
+                        <option key={cat._id} value={cat._id}>
+                          - {cat.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
                 {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category}</p>}
               </div>

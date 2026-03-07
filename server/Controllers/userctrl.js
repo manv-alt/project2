@@ -355,4 +355,109 @@ const deleteAddress = async (req, res) => {
   }
 };
 
-export { register, verifyotp, resendOtp, login, userrefresh, logout, getProfile, updateProfile, getAddresses, addAddress, deleteAddress };
+// === FORGOT PASSWORD === //
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ msg: "Email is required" });
+    }
+
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ msg: "Email not registered" });
+    }
+
+    // Generate 6 digit OTP
+    const resetOTP = Math.floor(100000 + Math.random() * 900000).toString();
+    const resetOTPExpiry = Date.now() + 5 * 60 * 1000; // 5 minutes
+
+    user.resetOTP = resetOTP;
+    user.resetOTPExpiry = resetOTPExpiry;
+    await user.save();
+
+    // Send OTP via email
+    await transpoter.sendMail({
+      to: email,
+      from: process.env.EMAIL_USER,
+      subject: "Password Reset OTP",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto;">
+          <h2 style="color: #16a34a;">Password Reset Request</h2>
+          <p>Hello ${user.name},</p>
+          <p>Your OTP for resetting password is:</p>
+          <h1 style="color: #16a34a; letter-spacing: 5px;">${resetOTP}</h1>
+          <p>This OTP will expire in 5 minutes.</p>
+          <p style="color: #666; font-size: 12px;">If you didn't request this, please ignore this email.</p>
+        </div>
+      `,
+    });
+
+    res.status(200).json({ msg: "OTP sent successfully to your email", email });
+  } catch (error) {
+    console.error("FORGOT PASSWORD ERROR", error);
+    res.status(500).json({ msg: "Failed to send OTP" });
+  }
+};
+
+// === VERIFY RESET OTP === //
+const verifyResetOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ msg: "Email and OTP are required" });
+    }
+
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    if (user.resetOTP !== otp) {
+      return res.status(400).json({ msg: "Invalid OTP" });
+    }
+
+    if (user.resetOTPExpiry < Date.now()) {
+      return res.status(400).json({ msg: "OTP has expired" });
+    }
+
+    res.status(200).json({ msg: "OTP verified successfully" });
+  } catch (error) {
+    console.error("VERIFY RESET OTP ERROR", error);
+    res.status(500).json({ msg: "Failed to verify OTP" });
+  }
+};
+
+// === RESET PASSWORD === //
+const resetPassword = async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    if (!email || !newPassword) {
+      return res.status(400).json({ msg: "Email and new password are required" });
+    }
+
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcryptjs.hash(newPassword, 10);
+
+    // Update password and clear OTP
+    user.password = hashedPassword;
+    user.resetOTP = null;
+    user.resetOTPExpiry = null;
+    await user.save();
+
+    res.status(200).json({ msg: "Password reset successfully" });
+  } catch (error) {
+    console.error("RESET PASSWORD ERROR", error);
+    res.status(500).json({ msg: "Failed to reset password" });
+  }
+};
+
+export { register, verifyotp, resendOtp, login, userrefresh, logout, getProfile, updateProfile, getAddresses, addAddress, deleteAddress, forgotPassword, verifyResetOTP, resetPassword };

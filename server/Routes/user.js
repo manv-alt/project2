@@ -1,5 +1,5 @@
 import express from "express";
-import { login, logout, register, resendOtp, userrefresh, verifyotp, getProfile, updateProfile, getAddresses, addAddress, deleteAddress } from "../Controllers/userctrl.js";
+import { login, logout, register, resendOtp, userrefresh, verifyotp, getProfile, updateProfile, getAddresses, addAddress, deleteAddress, forgotPassword, verifyResetOTP, resetPassword } from "../Controllers/userctrl.js";
 import { loginSchema,  signupvalid } from "../validator/authvalid.js";
 import { validate } from "../Middleware/validator.js";
 import auth from "../Middleware/auth.js";
@@ -17,6 +17,12 @@ router.post("/auth/resendotp", resendOtp);
 router.post("/auth/login",   validate(loginSchema), login);
 router.post("/auth/logout", logout);
 router.get("/auth/refresh", userrefresh);
+
+// FORGOT PASSWORD
+router.post("/auth/forgot-password", forgotPassword);
+router.post("/auth/verify-otp", verifyResetOTP);
+router.post("/auth/reset-password", resetPassword);
+
 //dash board
 router.get("/auth/Dashboard",Dhashboard)
 

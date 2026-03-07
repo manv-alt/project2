@@ -6,20 +6,35 @@ const CategorySchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
-  icon: {
+  slug: {
     type: String,
-    default: "",
+    lowercase: true,
   },
   image: {
     type: String,
     default: "",
   },
-  subcategories: {
-    type: [String],
-    default: [],
+  parent: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Category",
+    default: null,
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
   },
 }, {
   timestamps: true,
+});
+
+// Auto-generate slug before saving
+CategorySchema.pre('save', function() {
+  if (this.isModified('name') || !this.slug) {
+    this.slug = this.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  }
 });
 
 const Category = mongoose.model('Category', CategorySchema);

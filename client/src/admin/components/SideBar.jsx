@@ -5,8 +5,8 @@ import { LayoutDashboard, List, ListOrderedIcon, Package, Settings, ShoppingBag,
 import { NavLink } from 'react-router-dom'
 
 const SideBar = () => {
-    const menuItems = [
-  { title: "Dashboard", path: "/admin", icon: LayoutDashboard },
+const menuItems = [
+  { title: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
   
   { title: "Products", path: "/admin/Product", icon: ShoppingBag },
   { title: "Category Mangement", path: "/admin/Categories", icon: List },

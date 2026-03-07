@@ -40,6 +40,12 @@ const userSchema = new moongoose.Schema({
           type: Boolean,
           default: false
      },
+     resetOTP: {
+          type: String,
+     },
+     resetOTPExpiry: {
+          type: Date,
+     },
      refreshToken: {
           type: String,
      }

@@ -1,15 +1,22 @@
- import Cardcategory from '@/components/Cardcategory'
+import Cardcategory from '@/components/Cardcategory'
 import Herosection from '@/components/Herosection'
-import ProfileMenu from '@/components/ProfileMenu'
- import React from 'react'
+import PopularProducts from '@/components/PopularProducts'
+import React from 'react'
 
 const Home = () => {
   return (
     <div>
-    <Herosection/>
-    <Cardcategory/>
-    
+      {/* 1. Hero Banner Slider */}
+      <Herosection/>
       
+      {/* 2. Category Circular Grid */}
+      <Cardcategory/>
+      
+      {/* 3. Popular Products (random products) */}
+      <PopularProducts/>
+      
+      {/* 4. Fruits & Vegetables Highlight - Placeholder for future */}
+      {/* 5. Offers Banner - Placeholder for future */}
     </div>
   )
 }

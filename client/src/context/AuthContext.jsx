@@ -1,6 +1,7 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import api from "@/lib/axios";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext(null);
 
@@ -8,10 +9,16 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true); // 🔥 important
   const [error, setError] = useState(null);
-const [otpVerified, setOtpVerified] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
   // Added global modal states for login and signup modals to enable cross-component modal control
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [signupModalOpen, setSignupModalOpen] = useState(false);
+  
+  // Pending action after login - stores { action: string, data: any }
+  const [pendingAction, setPendingAction] = useState(null);
+  
+  // Navigate for logout
+  const navigate = useNavigate();
 
   /*  
      AUTO LOGIN (on refresh / reopen)
@@ -42,6 +49,16 @@ const [otpVerified, setOtpVerified] = useState(false);
       localStorage.setItem("accessToken", res.data.accessToken);
         toast.success("Logged in successfully");
       setUser(res.data.user);
+      
+      // Handle pending action after successful login
+      if (pendingAction) {
+        const { action, data: actionData } = pendingAction;
+        setPendingAction(null);
+        
+        // Return special object to indicate pending action
+        return { success: true, action, actionData };
+      }
+      
       return true;
     } catch (err) {
       const errorMsg = err.response?.data?.msg || err.response?.data?.message || "Login failed";
@@ -60,6 +77,17 @@ const [otpVerified, setOtpVerified] = useState(false);
       setLoading(false);
     }
   };
+  
+  // Set pending action when user tries to do shopping action without login
+  const setLoginRedirect = useCallback((action, data = null) => {
+    setPendingAction({ action, data });
+    setLoginModalOpen(true);
+  }, []);
+  
+  // Clear pending action
+  const clearPendingAction = useCallback(() => {
+    setPendingAction(null);
+  }, []);
 const verifyotp = async (email,otp) => {
   try {
     setLoading(true);
@@ -109,10 +137,17 @@ const resendOtp = async (email) => {
   };
 
    const logout = async () => {
-    await api.post("/auth/logout");
+    try {
+      await api.post("/auth/logout");
+    } catch (error) {
+      // Continue with logout even if API call fails
+    }
     localStorage.removeItem("accessToken");
-    toast.success("Logged out successfully");
+    // Dispatch custom event to clear cart
+    window.dispatchEvent(new CustomEvent("userLogout"));
     setUser(null);
+    toast.success("Logged out successfully");
+    navigate("/"); // Redirect to home page
   };
 
   const fetchProfile = async () => {
@@ -129,7 +164,26 @@ const resendOtp = async (email) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, error, login, signup, logout,verifyotp,resendOtp,otpVerified, loginModalOpen, setLoginModalOpen, signupModalOpen, setSignupModalOpen, fetchProfile, setUser }}
+      value={{ 
+        user, 
+        loading, 
+        error, 
+        login, 
+        signup, 
+        logout,
+        verifyotp,
+        resendOtp,
+        otpVerified, 
+        loginModalOpen, 
+        setLoginModalOpen, 
+        signupModalOpen, 
+        setSignupModalOpen, 
+        fetchProfile, 
+        setUser,
+        setLoginRedirect,
+        clearPendingAction,
+        pendingAction
+      }}
     >
 
       {children}

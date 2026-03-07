@@ -19,6 +19,8 @@ import Inventoryroute from "./Routes/Inventoryroute.js";
 import Cartroute from "./Routes/Cartroute.js";
 import Categoryroute from "./Routes/Categoryroute.js";
 import Webhookroute from "./Routes/Webhookroute.js";
+import Adminroute from "./Routes/Adminroute.js";
+import Feedbackroute from "./Routes/Feedbackroute.js";
 const app = express();
 
 // Create HTTP server
@@ -27,7 +29,7 @@ const server = http.createServer(app);
 //  Socket.IO setup
 export const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://localhost:5713"],
     credentials: true,
   },
 });
@@ -49,7 +51,7 @@ app.use("/api", Webhookroute);
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://localhost:5713"],
     credentials: true,
   })
 );
@@ -74,10 +76,42 @@ app.use("/api", Categoryroute);
 // Inventory routes
  app.use("/api/inventory", Inventoryroute);
 
+ // Admin routes
+ app.use("/api", Adminroute);
+
+ // Feedback routes
+ app.use("/api", Feedbackroute);
+
 app.use("/uploads", express.static("uploads"));
 
-// Connect database
-connectdb();
+// Connect database and seed admin
+connectdb().then(async () => {
+  console.log("Database connected");
+  
+  // Seed default admin
+  try {
+    const AdminModel = (await import("./Models/Admin.js")).default;
+    const bcrypt = await import("bcryptjs");
+    
+    const existingAdmin = await AdminModel.findOne({ username: "admin" });
+    if (!existingAdmin) {
+      const hashedPassword = await bcrypt.hash("admin123", 10);
+      await AdminModel.create({
+        username: "admin",
+        email: "admin@grocerymart.com",
+        password: hashedPassword,
+        role: "superadmin",
+        settings: {
+          notificationsEnabled: true,
+          autoRefreshInterval: 10,
+        },
+      });
+      console.log("Default admin created: admin / admin123");
+    }
+  } catch (error) {
+    console.log("Admin seeding skipped:", error.message);
+  }
+}).catch(err => console.log("Database connection error:", err));
 
 // Start server using server.listen (not app.listen)
 server.listen(PORT, () => {

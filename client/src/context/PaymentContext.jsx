@@ -7,40 +7,31 @@ const PaymentContext = createContext(null);
 export const PaymentProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
 
-  // Create checkout session for Stripe payment
-  const createCheckoutSession = async (orderId) => {
+  /**
+   * STRIPE CHECKOUT SESSION:
+   * 
+   * New Architecture (NO pre-order):
+   * 1. Send request to backend (no orderId needed)
+   * 2. Backend reads cart from database
+   * 3. Backend validates stock
+   * 4. Backend creates Stripe session with userId in metadata
+   * 5. Backend returns checkout URL
+   * 6. User redirected to Stripe
+   * 7. Order created in webhook AFTER successful payment
+   */
+  const createCheckoutSession = async () => {
     try {
       setLoading(true);
-      const { data: { url } } = await api.post("/checkout", { orderId });
+      
+      // No orderId needed - backend reads cart directly
+      const { data: { url } } = await api.post("/checkout", {});
+      
+      // Redirect to Stripe checkout
       window.location.href = url;
       return true;
     } catch (error) {
       console.error("Payment error:", error);
-      toast.error("Failed to initiate payment");
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Process payment
-  const processPayment = async (orderId, paymentMethod) => {
-    try {
-      setLoading(true);
-      
-      // Create order first
-      const { data: order } = await api.post("/create");
-      
-      if (paymentMethod === 'stripe') {
-        // Redirect to Stripe checkout
-        await createCheckoutSession(order._id);
-      } else {
-        // COD - just return the order
-        toast.success("Order placed successfully!");
-        return order;
-      }
-    } catch (error) {
-      console.error("Payment error:", error);
+      toast.error(error.response?.data?.message || "Failed to initiate payment");
       throw error;
     } finally {
       setLoading(false);
@@ -52,7 +43,6 @@ export const PaymentProvider = ({ children }) => {
       value={{
         loading,
         createCheckoutSession,
-        processPayment,
       }}
     >
       {children}
@@ -61,3 +51,4 @@ export const PaymentProvider = ({ children }) => {
 };
 
 export const usePayment = () => useContext(PaymentContext);
+

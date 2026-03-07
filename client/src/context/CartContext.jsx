@@ -59,6 +59,19 @@ export const CartProvider = ({ children }) => {
     fetchCart();
   }, []);
 
+  // Listen for logout event to clear cart
+  useEffect(() => {
+    const handleUserLogout = () => {
+      setCartItems([]);
+    };
+    
+    window.addEventListener("userLogout", handleUserLogout);
+    
+    return () => {
+      window.removeEventListener("userLogout", handleUserLogout);
+    };
+  }, []);
+
   return (
     <CartContext.Provider
       value={{

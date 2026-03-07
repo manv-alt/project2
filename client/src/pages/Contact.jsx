@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Phone, Mail, MapPin, Send, Star } from "lucide-react";
+import api from "@/lib/axios";
+import { toast } from "sonner";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    subject: "",
     message: "",
     rating: 0,
   });
@@ -15,12 +16,25 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
+    
+    try {
+      const { data } = await api.post("/feedback", {
+        name: formData.name,
+        email: formData.email,
+        message: formData.message,
+        rating: formData.rating
+      });
+      
+      if (data.success) {
+        toast.success("Thank you for your feedback! We appreciate your input.");
+        setFormData({ name: "", email: "", message: "", rating: 0 });
+      }
+    } catch (error) {
+      console.error("Feedback error:", error);
+      toast.error(error.response?.data?.message || "Failed to submit feedback. Please try again.");
+    } finally {
       setIsSubmitting(false);
-      alert("Thank you for your feedback!");
-      setFormData({ name: "", email: "", subject: "", message: "", rating: 0 });
-    }, 1500);
+    }
   };
 
   const handleChange = (e) => {
@@ -32,7 +46,7 @@ const Contact = () => {
       <button
         key={star}
         type="button"
-        className="focus:outline-none"
+        className="focus:outline-none transition-transform hover:scale-110"
         onMouseEnter={() => setHoverRating(star)}
         onMouseLeave={() => setHoverRating(0)}
         onClick={() => setFormData({ ...formData, rating: star })}
@@ -110,7 +124,7 @@ const Contact = () => {
 
           {/* Feedback Form */}
           <div className="bg-white rounded-3xl shadow-xl p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Send us a Message</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Send us Feedback</h2>
             
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid sm:grid-cols-2 gap-4">
@@ -138,19 +152,6 @@ const Contact = () => {
                     placeholder="john@example.com"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-                <input
-                  type="text"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all"
-                  placeholder="How can we help?"
-                />
               </div>
 
               {/* Rating */}
@@ -195,7 +196,7 @@ const Contact = () => {
                   </>
                 ) : (
                   <>
-                    Send Message
+                    Send Feedback
                     <Send className="w-5 h-5" />
                   </>
                 )}
@@ -209,3 +210,4 @@ const Contact = () => {
 };
 
 export default Contact;
+

@@ -26,6 +26,17 @@ export const CategoryProvider = ({ children }) => {
     fetchCategories();
   }, []);
 
+  // Get parent categories only (for main category display)
+  const parentCategories = categories.filter(cat => !cat.parent);
+  
+  // Get subcategories only
+  const subcategories = categories.filter(cat => cat.parent);
+  
+  // Get subcategories for a specific parent
+  const getSubcategories = (parentId) => {
+    return categories.filter(cat => cat.parent === parentId);
+  };
+
   const addCategory = async (formData) => {
     try {
       setLoading(true);
@@ -80,7 +91,18 @@ export const CategoryProvider = ({ children }) => {
 
   return (
     <CategoryContext.Provider
-      value={{ categories, loading, addCategory, updateCategory, deleteCategory }}
+      value={{ 
+        categories, 
+        loading, 
+        error,
+        fetchCategories, 
+        addCategory, 
+        updateCategory, 
+        deleteCategory,
+        parentCategories,
+        subcategories,
+        getSubcategories
+      }}
     >
       {children}
     </CategoryContext.Provider>
