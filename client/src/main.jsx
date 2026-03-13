@@ -10,6 +10,7 @@ import { CategoryProvider } from './context/CategoryContext'
 import { InventoryProvider } from './context/InventoryContext'
 import { OrderProvider } from './context/OrderContext'
 import { PaymentProvider } from './context/PaymentContext'
+import { AdminAuthProvider } from './context/AdminAuthContext'
 
 createRoot(document.getElementById('root')).render(
    
@@ -22,7 +23,9 @@ createRoot(document.getElementById('root')).render(
                 <InventoryProvider>
                   <OrderProvider>
                     <PaymentProvider>
+                      <AdminAuthProvider>
                       <App />
+                      </AdminAuthProvider>
                     </PaymentProvider>
                   </OrderProvider>
                 </InventoryProvider>
