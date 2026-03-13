@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
-import SignupModal from "./Signupmodal";
+import SignupModal from "./SignupModal";
 import ForgotPasswordModal from "./ForgotPasswordModal";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
