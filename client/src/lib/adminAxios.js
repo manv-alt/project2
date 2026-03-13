@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const adminApi = axios.create({
-  baseURL: "http://localhost:5000/api",
+    baseURL: "https://project2-0tm8.onrender.com/api",
   withCredentials: true,
 });
 
@@ -26,8 +26,9 @@ adminApi.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem("adminRefreshToken");
         if (refreshToken) {
-          const res = await axios.post(
-            "http://localhost:5000/api/admin/refresh",
+          
+           const res = await axios.post(
+  "https://project2-0tm8.onrender.com/api/admin/refresh",
             { refreshToken },
             { withCredentials: true }
           );
