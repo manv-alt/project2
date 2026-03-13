@@ -21,7 +21,11 @@ import Categoryroute from "./Routes/Categoryroute.js";
 import Webhookroute from "./Routes/Webhookroute.js";
 import Adminroute from "./Routes/Adminroute.js";
 import Feedbackroute from "./Routes/Feedbackroute.js";
+import path from "path";
+ 
+
 const app = express();
+
 
 // Create HTTP server
 const server = http.createServer(app);
@@ -84,14 +88,7 @@ app.use("/api", Categoryroute);
 
 app.use("/uploads", express.static("uploads"));
 
-// Serve React app static files (for Render deployment)
-import path from 'path';
-app.use(express.static(path.resolve(__dirname, '../client/dist')));
-
-// Catch-all handler for React Router SPA routes (must be AFTER API routes)
-app.get('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname, '../client/dist/index.html'));
-});
+  
 
 // Connect database and seed admin
 connectdb().then(async () => {
