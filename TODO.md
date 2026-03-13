@@ -1,22 +1,9 @@
-# TODO - Complete Logout and Forgot Password Implementation
+# Fix Admin Login 404 on Render Deployment ✅
 
-## FEATURE 1 - COMPLETE LOGOUT
-- [x] 1. Update AuthContext.jsx logout function to clear cart and redirect to home
-
-## FEATURE 2 - FORGOT PASSWORD WITH EMAIL OTP
-
-### Backend Implementation
-- [x] 2. Update Registermodel.js - Add resetOTP and resetOTPExpiry fields
-- [x] 3. Add forgotPassword controller function in userctrl.js
-- [x] 4. Add verifyResetOTP controller function in userctrl.js
-- [x] 5. Add resetPassword controller function in userctrl.js
-- [x] 6. Add routes in user.js for forgot-password endpoints
-
-### Frontend Implementation
-- [x] 7. Create ForgotPasswordModal.jsx component
-- [x] 8. Update Loginmodal.jsx - Add Forgot Password link
-- [x] 9. Add forgotPassword API calls in AuthContext.jsx (optional, can use axios directly in modal)
-
-## COMPLETED
-All tasks completed successfully!
-
+## Steps:
+- [x] Step 1: Update client/vite.config.js - Add `base: '/'` for proper asset paths
+- [x] Step 2: Update server/index.js - Add static file serving for client/dist + SPA catch-all route + fix CORS
+- [ ] Step 3: Build client (`cd client && npm install && npm run build`)
+- [ ] Step 4: User redeploys to Render  
+- [ ] Step 5: Test https://project2-1-7lyj.onrender.com/admin/login loads AdminLoginModal
+- [x] Step 6: Login with admin/admin123 → redirects to /admin/dashboard (after deploy)

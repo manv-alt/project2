@@ -29,7 +29,7 @@ const server = http.createServer(app);
 //  Socket.IO setup
 export const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:5713"],
+    origin: ["http://localhost:5173", "http://localhost:5713", "https://project2-1-7lyj.onrender.com"],
     credentials: true,
   },
 });
@@ -51,7 +51,7 @@ app.use("/api", Webhookroute);
 app.use(express.json());
 app.use(
   cors({
-    origin: ["https://project2-1-7lyj.onrender.com"],
+    origin: ["https://project2-1-7lyj.onrender.com", "https://project2-1-7lyj.onrender.com/admin"],
     credentials: true,
   })
 );
@@ -83,6 +83,15 @@ app.use("/api", Categoryroute);
  app.use("/api", Feedbackroute);
 
 app.use("/uploads", express.static("uploads"));
+
+// Serve React app static files (for Render deployment)
+import path from 'path';
+app.use(express.static(path.resolve(__dirname, '../client/dist')));
+
+// Catch-all handler for React Router SPA routes (must be AFTER API routes)
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, '../client/dist/index.html'));
+});
 
 // Connect database and seed admin
 connectdb().then(async () => {
