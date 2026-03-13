@@ -1,4 +1,5 @@
-import { useState } from "react";
+// admin/pages/AdminLoginPage.jsx
+import React, { useState } from "react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -14,16 +15,16 @@ const AdminLoginModal = () => {
     setLoading(true);
 
     const success = await login(username, password);
-    
+
     if (success) {
       navigate("/admin/dashboard");
     }
-    
+
     setLoading(false);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-2xl">
         <div className="mb-6 text-center">
           <h2 className="text-2xl font-bold text-gray-800">Admin Login</h2>
@@ -79,4 +80,3 @@ const AdminLoginModal = () => {
 };
 
 export default AdminLoginModal;
-
