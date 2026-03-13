@@ -123,6 +123,8 @@ const App = () => {
 
 
                   {/* ADMIN PANEL */}
+                   <Route path="/admin/login" element={<AdminLoginModal />} />
+
                   <Route path="/admin" element={<Adminlayouts/>}>
                     <Route index element={<AdminDashboard/>} />
                     <Route path="dashboard" element={<AdminDashboard/>} />
