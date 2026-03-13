@@ -16,7 +16,7 @@ const CircularCategoryCard = ({ category }) => {
   const getImageUrl = (imgPath) => {
     if (!imgPath) return defaultImage;
     if (imgPath.startsWith('http')) return imgPath;
-    return `http://localhost:5000${imgPath}`;
+    return `https://project2-0tm8.onrender.com${imgPath}`;
   };
 
   return (

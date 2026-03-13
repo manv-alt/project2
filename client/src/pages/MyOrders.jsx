@@ -50,7 +50,7 @@ const MyOrders = () => {
   const getProductImage = (img) => {
     if (!img) return "/image.png";
     if (img.startsWith('http')) return img;
-    return `http://localhost:5000${img}`;
+return `https://project2-0tm8.onrender.com${img}`;
   };
 
   const formatDate = (date) => {
