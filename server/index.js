@@ -21,8 +21,7 @@ import Categoryroute from "./Routes/Categoryroute.js";
 import Webhookroute from "./Routes/Webhookroute.js";
 import Adminroute from "./Routes/Adminroute.js";
 import Feedbackroute from "./Routes/Feedbackroute.js";
-import path from "path";
- 
+  
 
 const app = express();
 
@@ -89,6 +88,7 @@ app.use("/api", Categoryroute);
 app.use("/uploads", express.static("uploads"));
 
   
+ 
 
 // Connect database and seed admin
 connectdb().then(async () => {
