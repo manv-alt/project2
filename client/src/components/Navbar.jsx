@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Loginmodal from "./Loginmodal";
 import ProfileMenu from "./ProfileMenu";
-import { useAuth } from "@/context/authcontext";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import Cart from "./Cart";
 import { useCart } from "@/context/CartContext";
