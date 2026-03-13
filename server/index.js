@@ -49,10 +49,10 @@ io.on("connection", (socket) => {
 
 // Stripe webhook needs raw body, so it's registered before express.json()
 app.use("/api", Webhookroute);
-app.use(express.static(path.join(process.cwd(), 'dist')));
+app.use(express.static(path.join(process.cwd(), 'client/dist')));
 app.get('/*splat', (req, res) => {
   if (!req.path.startsWith('/api/')) {
-    return res.sendFile(path.join(process.cwd(), 'client/build', 'index.html'));
+    return res.sendFile(path.join(process.cwd(), 'client/dist', 'index.html'));
   }
   res.status(404).json({ error: 'API route not found' });
 });
