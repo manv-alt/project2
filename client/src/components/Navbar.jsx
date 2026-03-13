@@ -3,7 +3,7 @@ import { BiMenu, BiSearch, BiX } from "react-icons/bi";
 import { FiShoppingCart, FiUser } from "react-icons/fi";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Loginmodal from "./loginmodal";
+import Loginmodal from "./Loginmodal";
 import ProfileMenu from "./ProfileMenu";
 import { useAuth } from "@/context/authcontext";
 import { Button } from "@/components/ui/button";
