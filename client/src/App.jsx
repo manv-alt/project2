@@ -29,6 +29,7 @@ import { AdminAuthProvider } from "./context/AdminAuthContext";
 import { ProductProvider } from "./context/ProductContext";
 import { CategoryProvider } from "./context/CategoryContext";
 import { CartProvider } from "./context/CartContext";
+import AdminLoginModal from "./admin/components/AdminLoginModal";
 
 const App = () => {
   return (
