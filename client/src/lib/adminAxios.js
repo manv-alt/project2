@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const adminApi = axios.create({
-    baseURL: "https://project2-0tm8.onrender.com/api",
-  withCredentials: true,
+    baseURL: "/api",  // Use relative path - works on localhost:5173 and Render domain
+    withCredentials: true,
 });
 
 // Attach admin token automatically
@@ -28,7 +28,7 @@ adminApi.interceptors.response.use(
         if (refreshToken) {
           
            const res = await axios.post(
-  "https://project2-0tm8.onrender.com/api/admin/refresh",
+  "/api/admin/refresh",
             { refreshToken },
             { withCredentials: true }
           );
