@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const PORT = process.env.PORT;
-
+import path from 'path';
 import express from "express";
 import cors from "cors";
 import http from "http";
@@ -49,7 +49,13 @@ io.on("connection", (socket) => {
 
 // Stripe webhook needs raw body, so it's registered before express.json()
 app.use("/api", Webhookroute);
-
+app.use(express.static(path.join(process.cwd(), 'client/build')));
+app.get('/*splat', (req, res) => {
+  if (!req.path.startsWith('/api/')) {
+    return res.sendFile(path.join(process.cwd(), 'client/build', 'index.html'));
+  }
+  res.status(404).json({ error: 'API route not found' });
+});
 // Middleware
 app.use(express.json());
 app.use(
