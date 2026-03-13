@@ -51,7 +51,7 @@ app.use("/api", Webhookroute);
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5713"],
+    origin: ["https://project2-1-7lyj.onrender.com"],
     credentials: true,
   })
 );
