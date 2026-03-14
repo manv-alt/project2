@@ -49,23 +49,25 @@ io.on("connection", (socket) => {
 
 // Stripe webhook needs raw body, so it's registered before express.json()
 app.use("/api", Webhookroute);
-app.use(express.static(path.join(process.cwd(), 'client/dist')));
-app.get('/*splat', (req, res) => {
-  if (!req.path.startsWith('/api/')) {
-    return res.sendFile(path.join(process.cwd(), 'client/dist', 'index.html'));
-  }
-  res.status(404).json({ error: 'API route not found' });
-});
+// app.use(express.static(path.join(process.cwd(), 'client/dist')));
+// app.get('/*splat', (req, res) => {
+//   if (!req.path.startsWith('/api/')) {
+//     return res.sendFile(path.join(process.cwd(), 'client/dist', 'index.html'));
+//   }
+//   res.status(404).json({ error: 'API route not found' });
+// });
 // Middleware
-app.use(express.json());
-app.use(
-  cors({
-    origin: ["https://project2-2tyu.vercel.app/"],
-    credentials: true,
-  })
-);
-app.use(cookieParser());
 
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:5713",
+    "https://project2-2tyu.vercel.app"
+  ],
+  credentials: true
+}));
+app.use(cookieParser());
+app.use(express.json());
 app.use("/api", user);
 app.use("/api",Dhasboardroute );
 app.use("/api",Productroute );
