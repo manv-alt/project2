@@ -26,7 +26,8 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const res = await api.get("/auth/refresh"); // refresh token used here
+        const refreshToken = localStorage.getItem("refreshToken");
+        const res = await api.post("/auth/refresh", { refreshToken });
         localStorage.setItem("accessToken", res.data.accessToken);
         setUser(res.data.user);
       } catch (err) {

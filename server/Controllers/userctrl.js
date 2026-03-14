@@ -189,7 +189,8 @@ const login = async (req, res) => {
 
 const userrefresh = async (req, res) => {
   try {
-    const refreshToken = req.cookies.refreshToken;
+    const refreshToken = req.body.refreshToken || req.cookies.refreshToken;
+    console.log("Refresh token source:", req.body.refreshToken ? "body" : "cookie");
     if (!refreshToken) {
       return res.status(401).json({ message: "No refresh token provided" });
     }
@@ -213,6 +214,7 @@ const userrefresh = async (req, res) => {
       user,
     });
   } catch (error) {
+    console.error("Refresh error:", error.message);
     res.status(401).json({ msg: "Session expired" });
   }
 };

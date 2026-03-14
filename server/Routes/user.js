@@ -16,7 +16,7 @@ router.post("/auth/resendotp", resendOtp);
 // LOGIN
 router.post("/auth/login",   validate(loginSchema), login);
 router.post("/auth/logout", logout);
-router.get("/auth/refresh", userrefresh);
+router.post("/auth/refresh", userrefresh);
 
 // FORGOT PASSWORD
 router.post("/auth/forgot-password", forgotPassword);
