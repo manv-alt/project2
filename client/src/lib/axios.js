@@ -3,6 +3,9 @@ import axios from "axios";
 const api = axios.create({
   baseURL: "https://project2-oz9n.onrender.com/api",
   withCredentials: true, // 🔑 refresh token cookie
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 // attach access token automatically
