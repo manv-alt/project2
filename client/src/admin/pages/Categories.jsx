@@ -23,7 +23,7 @@ const Categories = () => {
   const getImageUrl = (imgPath) => {
     if (!imgPath) return null;
     if (imgPath.startsWith('http') || imgPath.startsWith('blob:')) return imgPath;
-return `https://project2-0tm8.onrender.com${imgPath}`;
+return `https://project2-oz9n.onrender.com${imgPath}`;
   };
 
   // Get parent category name

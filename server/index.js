@@ -32,7 +32,7 @@ const server = http.createServer(app);
 //  Socket.IO setup
 export const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:5713", "https://project2-1-7lyj.onrender.com"],
+    origin: ["http://localhost:5173", "http://localhost:5713", "https://project2-oz9n.onrender.com"],
     credentials: true,
   },
 });
@@ -60,7 +60,7 @@ app.get('/*splat', (req, res) => {
 app.use(express.json());
 app.use(
   cors({
-    origin: ["https://project2-1-7lyj.onrender.com", "https://project2-1-7lyj.onrender.com/admin"],
+    origin: ["https://project2-2tyu.vercel.app/"],
     credentials: true,
   })
 );
