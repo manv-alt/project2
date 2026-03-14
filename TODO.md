@@ -12,5 +12,5 @@
 9. 🚀 Deploy & test Render prod
 10. ✅ Verify cart refreshes on 401, close task
 
-**Status: Code complete! Ready for test (step 8). Push to deploy Render.**
+**Status: FIXED refreshToken localStorage! Push to git → Render redeploy → Test.**
 

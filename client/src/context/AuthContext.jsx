@@ -48,6 +48,9 @@ export const AuthProvider = ({ children }) => {
 
       const res = await api.post("/auth/login", data);
       localStorage.setItem("accessToken", res.data.accessToken);
+      if (res.data.refreshToken) {
+        localStorage.setItem("refreshToken", res.data.refreshToken);
+      }
         toast.success("Logged in successfully");
       setUser(res.data.user);
       
