@@ -1,16 +1,62 @@
-# Fix 401 Refresh/CART Errors - Progress Tracker
+# Fix 401 Refresh/CART Errors - FINAL IMPLEMENTATION PLAN
 
-## Plan Steps (Approved by User):
-1. ~~✅ Understand issue via file reads/searches~~
-2. 📝 Create TODO.md
-3. ✅ Updated server/Controllers/userctrl.js (support body/cookie refresh)
-4. ✅ Updated server/Routes/user.js (POST /auth/refresh)
-5. ✅ Updated client/src/lib/axios.js (add interceptor, baseURL, withCredentials)
-6. ✅ Updated client/src/context/AuthContext.jsx (POST refresh)
-7. ✅ Created client/.env (VITE_API_URL) and server/.env.example
-8. 🧪 Local test: Backend `cd server && npm start`, Frontend `cd client && npm run dev`
-9. 🚀 Deploy & test Render prod
-10. ✅ Verify cart refreshes on 401, close task
+## Status: ✅ PLAN APPROVED - Starting Implementation
 
-**Status: FIXED refreshToken localStorage! Push to git → Render redeploy → Test.**
+**Root Cause:** 
+- axios interceptor refresh POST('/auth/refresh') misses baseURL → wrong endpoint on prod
+- No VITE_API_URL env → localhost on Render  
+- Possible CORS cookie issues
 
+## Implementation Steps:
+
+### 1. 🔧 Fix Client Axios Interceptor [✅ UPDATED]
+`client/src/lib/axios.js`
+- Change interceptor `axios.post('/auth/refresh')` → `api.post('/auth/refresh')`
+
+### 2. 🌐 Create Production Env [✅ CREATED]
+`client/.env`
+```
+VITE_API_URL=https://project2-oz9n.onrender.com/api
+```
+
+### 3. 🛡️ Update Server CORS [PENDING]  
+`server/index.js`
+- Add Vercel/Render frontend origins
+
+### 4. 🔑 Server Env Template [✅ CREATED]
+`server/.env.example`
+```
+JWT_ACCESS_SECRET=your_strong_access_secret_key_here
+JWT_REFRESH_SECRET=your_strong_refresh_secret_key_here  
+# ... other vars
+```
+
+### 5. 📝 Progress Tracking [PENDING]
+- Update this TODO.md after each step
+
+### 6. 🧪 Testing
+```
+# Terminal 1  
+cd server && npm start
+
+# Terminal 2  
+cd client && npm run dev
+```
+- Test login → cart → logout → refresh → auto-login works
+
+### 7. 🚀 Production Deploy
+```
+git add .
+git commit -m 'fix: resolve 401 auth refresh loop prod'
+git push origin main
+```
+- Render auto-deploys
+- Clear browser localStorage
+- Test https://project2-oz9n.onrender.com cart functionality
+
+### 8. ✅ Verify Fixed
+- No more 401 console errors
+- Cart loads after page refresh
+- Auto token refresh works
+
+**Next Step:** Update axios.js interceptor
