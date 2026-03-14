@@ -23,24 +23,21 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+   if (error.response?.status === 401 && !originalRequest._retry) {
+  originalRequest._retry = true;
 
-      try {
-        const refreshToken = localStorage.getItem("refreshToken");
-        if (refreshToken) {
-        const res = await api.post("/auth/refresh", { refreshToken });
+  try {
+    const res = await api.post("/auth/refresh");
 
-          localStorage.setItem("accessToken", res.data.accessToken);
+    localStorage.setItem("accessToken", res.data.accessToken);
 
-          originalRequest.headers.Authorization = `Bearer ${res.data.accessToken}`;
-          return api(originalRequest);
-        }
-      } catch (refreshError) {
-        localStorage.removeItem("accessToken");
-        window.location.href = "/";
-      }
-    }
+    originalRequest.headers.Authorization = `Bearer ${res.data.accessToken}`;
+    return api(originalRequest);
+  } catch (refreshError) {
+    localStorage.removeItem("accessToken");
+    window.location.href = "/";
+  }
+}
 
     return Promise.reject(error);
   }
