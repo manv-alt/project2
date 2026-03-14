@@ -25,7 +25,7 @@ const Cart = ({ open, onOpenChange }) => {
   const getProductImage = (img) => {
     if (!img) return "/image.png";
     if (img.startsWith('http')) return img;
-    return `https://project2-0tm8.onrender.com${img}`;
+    return `https://project2-oz9n.onrender.com${img}`;
   };
 
   const total = calculateTotal(validCartItems);
