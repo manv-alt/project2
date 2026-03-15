@@ -23,13 +23,14 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-   if (error.response?.status === 401 && !originalRequest._retry) {
+   if (error.response?.status === 401 && !originalRequest._retry&&!originalRequest.url.includes("/auth/refresh")) {
   originalRequest._retry = true;
 
   try {
     const res = await api.post("/auth/refresh");
+    const newAccessToken = res.data.accessToken;
 
-    localStorage.setItem("accessToken", res.data.accessToken);
+    localStorage.setItem("accessToken",newAccessToken);
 
     originalRequest.headers.Authorization = `Bearer ${res.data.accessToken}`;
     return api(originalRequest);
