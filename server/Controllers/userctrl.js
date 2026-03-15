@@ -164,7 +164,7 @@ const login = async (req, res) => {
        httpOnly: true,
   secure: true,
   sameSite: "none",
-    
+     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
     res.status(200).json({
@@ -191,7 +191,7 @@ const login = async (req, res) => {
 
 const userrefresh = async (req, res) => {
   try {
-    const refreshToken = req.body.refreshToken || req.cookies.refreshToken;
+    const refreshToken =  req.cookies.refreshToken;
     console.log("Refresh token source:", req.body.refreshToken ? "body" : "cookie");
     if (!refreshToken) {
       return res.status(401).json({ message: "No refresh token provided" });
@@ -206,7 +206,7 @@ const userrefresh = async (req, res) => {
     }
 
     const newAccessToken = jwt.sign(
-      { id: user._id },
+      { id: user._id,email: user.email },
       process.env.JWT_ACCESS_SECRET,
       { expiresIn: "15m" }
     );
