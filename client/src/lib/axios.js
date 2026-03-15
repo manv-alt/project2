@@ -46,28 +46,20 @@ const processQueue = (error, token = null) => {
 
 api.interceptors.response.use(
   (response) => response,
-  
   async (error) => {
     const originalRequest = error.config;
-    
-    // ✅ Handle network/CORS errors (no response)
-    if (!error.response) {
-      console.error("Network/CORS error:", error.message);
-      return Promise.reject(error);
-    }
-    
-    // ✅ If refresh endpoint itself fails → logout immediately
-    if (originalRequest.url?.includes("/auth/refresh")) {
-      console.error("Refresh token failed");
-      localStorage.removeItem("accessToken");
-      window.location.href = "/login"; // or "/"
-      return Promise.reject(error);
-    }
-    
-    // ✅ Handle 401 unauthorized
-    if (error.response.status === 401 && !originalRequest._retry) {
+
+    // 1. Check if the error is 401 and not already a retry
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      
+      // If the 401 came FROM the refresh endpoint itself, STOP immediately
+      if (originalRequest.url.includes("/auth/refresh")) {
+        localStorage.removeItem("accessToken");
+        window.location.href = "/login";
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
-        // ✅ Queue this request until refresh completes
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -77,37 +69,29 @@ api.interceptors.response.use(
           })
           .catch((err) => Promise.reject(err));
       }
-      
-      // ✅ First 401 → start refresh
+
       originalRequest._retry = true;
       isRefreshing = true;
-      
+
       try {
-        console.log("🔄 Refreshing token...");
-        const refreshResponse = await axios.post(
+        // Use a clean axios instance to avoid interceptor interference
+        const { data } = await axios.post(
           `${API_BASE_URL}/auth/refresh`,
           {},
-          { withCredentials: true } // ✅ Direct call bypasses interceptors
+          { withCredentials: true }
         );
-        
-        const newToken = refreshResponse.data.accessToken;
-        
-        // ✅ Update localStorage and default headers
+
+        const newToken = data.accessToken;
         localStorage.setItem("accessToken", newToken);
-        api.defaults.headers.Authorization = `Bearer ${newToken}`;
         
+        // Update the failed requests in queue
         processQueue(null, newToken);
-        console.log("✅ Token refreshed successfully");
         
-        // ✅ Retry original request
+        // Retry the original request
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
-        
       } catch (refreshError) {
-        console.error("❌ Refresh failed:", refreshError);
         processQueue(refreshError, null);
-        
-        // ✅ Logout on refresh failure
         localStorage.removeItem("accessToken");
         window.location.href = "/login";
         return Promise.reject(refreshError);
@@ -115,8 +99,7 @@ api.interceptors.response.use(
         isRefreshing = false;
       }
     }
-    
-    // ✅ Other errors pass through
+
     return Promise.reject(error);
   }
 );
