@@ -192,8 +192,7 @@ const login = async (req, res) => {
 const userrefresh = async (req, res) => {
   try {
     const refreshToken =  req.cookies.refreshToken;
-    console.log("Refresh token source:", req.body.refreshToken ? "body" : "cookie");
-    if (!refreshToken) {
+     if (!refreshToken) {
       return res.status(401).json({ message: "No refresh token provided" });
     }
     const decoded = jwt.verify(

@@ -63,7 +63,7 @@ app.use(cors({
     "http://localhost:5173",
     "http://localhost:5713",
     "https://project2-2tyu.vercel.app",
-    "https://project2-oz9n.onrender.com"
+   
   ],
   credentials: true
 }));
