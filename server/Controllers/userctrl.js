@@ -161,11 +161,11 @@ const login = async (req, res) => {
     await user.save();
 
     res.cookie("refreshToken", refreshToken, {
-       httpOnly: true,
-  secure: true,
-  sameSite: "none",
-     maxAge: 7 * 24 * 60 * 60 * 1000 ,// 7 days,
-     path:"/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: "/",
     });
 
     res.status(200).json({
@@ -233,10 +233,9 @@ const logout = async (req, res) => {
     }
 
     res.clearCookie("refreshToken", {
-     
-       httpOnly: true,
-  secure: true,
-  sameSite: "none"
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
 
     res.status(200).json({ msg: "Logged out successfully" });
