@@ -35,6 +35,7 @@ const allowedOrigins = [
    "https://project2-2tyu-git-main-manv-alts-projects.vercel.app",
   // ✅ Add your production URL if different
   "https://project2-2tyu.vercel.app",
+  
 ];
 
 // ✅ Socket.IO CORS - FIXED

@@ -26,13 +26,13 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const refreshToken = localStorage.getItem("refreshToken");
-        const res = await api.post("/auth/refresh", { refreshToken });
+         const res = await api.post("/auth/refresh");
         localStorage.setItem("accessToken", res.data.accessToken);
         setUser(res.data.user);
       } catch (err) {
         setUser(null);
         localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
       } finally {
         setLoading(false);
       }

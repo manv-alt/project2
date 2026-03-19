@@ -18,44 +18,35 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-api.interceptors.response.use(
+ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // 1. Check if it's a 401 and NOT already a retry
-    // 2. IMPORTANT: Don't try to refresh if the failed request WAS the refresh call itself!
-    if (
-      error.response?.status === 401 && 
-      !originalRequest._retry && 
-      !originalRequest.url.includes("/auth/refresh")
-    ) {
-      originalRequest._retry = true;
-
-      try {
-        // Use a base axios instance here, NOT the 'api' instance
-        const refreshResponse = await axios.post(
-          `${baseURL}/auth/refresh`,
-          {},
-          { withCredentials: true }
-        );
-
-        const newToken = refreshResponse.data.accessToken;
-        localStorage.setItem("accessToken", newToken);
-        
-        // Update the header for the original request and retry
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return api(originalRequest);
-      } catch (refreshError) {
-        localStorage.removeItem("accessToken");
-        // Only redirect if we aren't already on the login page
-        if (window.location.pathname !== "/login") {
-          window.location.href = "/login";
-        }
-        return Promise.reject(refreshError);
+    // 🛑 HARD STOP: If the error came from a refresh attempt, stop everything
+    if (originalRequest.url.includes("/auth/refresh")) {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      // Use window.location.replace to prevent back-button loops
+      if (window.location.pathname !== "/login") {
+         window.location.replace("/login");
       }
+      return Promise.reject(error);
     }
 
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        // Use standard axios to avoid the request interceptor adding the old token
+        const res = await axios.post(`${baseURL}/auth/refresh`, {}, { withCredentials: true });
+        const newToken = res.data.accessToken;
+        localStorage.setItem("accessToken", newToken);
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
+      } catch (err) {
+        return Promise.reject(err); // The logic at the top will handle the redirect
+      }
+    }
     return Promise.reject(error);
   }
 );
