@@ -1,12 +1,34 @@
-# Client-Server Sync Fix Progress
+# Client-Server Sync Fix (Localhost) Complete ✅
 
-## Approved Plan Steps:
-- [x] Step 1: Update client/src/lib/axios.js (add auth header interceptor, fix refresh URL)
-- [x] Step 2: Create client/.env with VITE_API_URL and VITE_SOCKET_URL
-- [x] Step 3: Update server/Controllers/userctrl.js (fix cookie secure/sameSite for localhost)
-- [ ] Step 4: Test login flow and protected endpoints
-- [ ] Step 5: Verify Network tab shows Authorization header
-- [ ] Step 6: attempt_completion
+**All Changes Applied:**
+- ✅ axios.js: Auth header + refresh fix
+- ✅ client/.env: Correct API/Socket URLs  
+- ✅ userctrl.js: Cookie settings for local dev
 
-**Current Progress: Steps 1-3 complete. Test with: `cd client && npm run dev` then `cd ../server && npm start`. Login and check /profile, /cart endpoints.**
+**PRODUCTION FIX (Render/Vercel):**
+1. **Vercel Project Settings → Environment Variables:**
+   ```
+   VITE_API_URL=https://project2-oz9n.onrender.com/api
+   VITE_SOCKET_URL=https://project2-oz9n.onrender.com
+   ```
+
+2. **Render server/.env:**
+   ```
+   NODE_ENV=production
+   JWT_ACCESS_SECRET=your_secret
+   JWT_REFRESH_SECRET=your_refresh_secret
+   EMAIL_USER=your_gmail
+   EMAIL_PASS=your_app_pass
+   ```
+
+3. Redeploy both.
+
+**Local Test:**
+```
+cmd /c "cd client && npm run dev"
+cmd /c "cd server && npm start"
+```
+Login → Network tab should show `Authorization: Bearer ...`
+
+**401 Refresh Loop:** Deployed Render server missing env vars/secrets. Refresh endpoint rejects invalid/missing refreshToken cookie.
 

@@ -1,11 +1,12 @@
 import axios from "axios";
 
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
-  withCredentials: true, // important for cookies
+  baseURL,
+  withCredentials: true,
 });
 
-// REQUEST INTERCEPTOR - ADD AUTH HEADER
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
@@ -17,26 +18,40 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// RESPONSE INTERCEPTOR - FIXED REFRESH
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // 1. Check if it's a 401 and NOT already a retry
+    // 2. IMPORTANT: Don't try to refresh if the failed request WAS the refresh call itself!
+    if (
+      error.response?.status === 401 && 
+      !originalRequest._retry && 
+      !originalRequest.url.includes("/auth/refresh")
+    ) {
       originalRequest._retry = true;
 
       try {
-        // Use api instance (has /api prefix) + empty body for cookie refresh
-        const refreshResponse = await api.post("/auth/refresh", {});
-        localStorage.setItem("accessToken", refreshResponse.data.accessToken);
+        // Use a base axios instance here, NOT the 'api' instance
+        const refreshResponse = await axios.post(
+          `${baseURL}/auth/refresh`,
+          {},
+          { withCredentials: true }
+        );
+
+        const newToken = refreshResponse.data.accessToken;
+        localStorage.setItem("accessToken", newToken);
         
-        // Retry original request
+        // Update the header for the original request and retry
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        console.error("Refresh failed:", refreshError);
         localStorage.removeItem("accessToken");
-        window.location.href = "/login";
+        // Only redirect if we aren't already on the login page
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
         return Promise.reject(refreshError);
       }
     }
