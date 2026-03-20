@@ -48,7 +48,8 @@ const PopularProducts = () => {
   const getImageUrl = (imgPath) => {
     if (!imgPath) return "/image.png";
     if (imgPath.startsWith('http')) return imgPath;
-return `https://project2-oz9n.onrender.com${imgPath}`;
+    const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000';
+    return `${baseUrl}${imgPath}`;
   };
 
   const handleProductClick = (product) => {

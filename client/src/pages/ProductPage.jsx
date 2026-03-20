@@ -111,7 +111,8 @@ const ProductPage = () => {
   const getProductImage = (img) => {
     if (!img) return "/image.png";
     if (img.startsWith('http')) return img;
-    return `https://project2-oz9n.onrender.com.com${img}`;
+    const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000';
+    return `${baseUrl}${img}`;
   };
 
   // Get category display name
