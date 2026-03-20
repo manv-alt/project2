@@ -39,6 +39,15 @@ export const AuthProvider = ({ children }) => {
     };
 
     loadUser();
+
+    const handleGlobalLogout = () => {
+      setUser(null);
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+    };
+    
+    window.addEventListener("userLogout", handleGlobalLogout);
+    return () => window.removeEventListener("userLogout", handleGlobalLogout);
   }, []);
 
    const login = async (data) => {

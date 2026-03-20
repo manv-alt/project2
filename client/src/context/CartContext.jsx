@@ -1,5 +1,6 @@
 import api from "@/lib/axios";
 import { createContext, useContext, useEffect, useState } from "react";
+import { useAuth } from "./AuthContext";
 
 const CartContext = createContext(null);
 
@@ -55,9 +56,15 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  const { user } = useAuth();
+
   useEffect(() => {
-    fetchCart();
-  }, []);
+    if (user) {
+      fetchCart();
+    } else {
+      setCartItems([]);
+    }
+  }, [user]);
 
   // Listen for logout event to clear cart
   useEffect(() => {

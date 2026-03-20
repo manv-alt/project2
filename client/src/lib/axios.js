@@ -44,7 +44,10 @@ api.interceptors.request.use(
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (err) {
-        return Promise.reject(err); // The logic at the top will handle the redirect
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        window.dispatchEvent(new Event("userLogout"));
+        return Promise.reject(err); 
       }
     }
     return Promise.reject(error);
