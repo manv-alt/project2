@@ -5,19 +5,12 @@ import jwt from "jsonwebtoken";
 import { loginSchema, signupvalid, } from "../validator/authvalid.js";
 import UserModel from "../Models/Registermodel.js";
 import AddressModel from "../Models/Address.js";
-import nodemailer from "nodemailer"
+import { Resend } from "resend";
 import tempotp from "../Models/TempOtpModel.js";
 
-console.log("DEBUG - User:", process.env.EMAIL_USER);
-console.log("DEBUG - Pass:", process.env.EMAIL_PASS ? "Loaded (Secret)" : "NOT LOADED");
-const transpoter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  }
-
-})
+console.log("DEBUG - Resend Key:", process.env.RESEND_API_KEY ? "Loaded (Secret)" : "NOT LOADED");
+const resend = new Resend(process.env.RESEND_API_KEY);
+const EMAIL_FROM = process.env.EMAIL_FROM || 'onboarding@resend.dev';
 
 const register = async (req, res) => {
   try {
@@ -41,14 +34,11 @@ const register = async (req, res) => {
     otpExpiry: Date.now() + 5 * 60 * 1000,
   });
      
-    await transpoter.sendMail({
+    await resend.emails.send({
       to: email,
-      from: process.env.EMAIL_USER,
+      from: EMAIL_FROM,
       subject: "Verify your account",
-      text: `hi${name},
-        your OTP is: ${otp}
-        valid for 5 minutes.`
-
+      html: `<p>hi ${name},<br>your OTP is: <strong>${otp}</strong><br>valid for 5 minutes.</p>`
     });
     const io = req.app.get("io");
     io.emit("dashboardUpdate");
@@ -112,9 +102,9 @@ const resendOtp = async (req, res) => {
     user.otpExpiry = Date.now() + 5 * 60 * 1000;
     await user.save();
 
-    await transpoter.sendMail({
+    await resend.emails.send({
       to: user.email,
-      from: process.env.EMAIL_USER,
+      from: EMAIL_FROM,
       subject: "Resend OTP",
       html: `
         <h3>Hello ${user.name}</h3>
@@ -384,9 +374,9 @@ const forgotPassword = async (req, res) => {
     await user.save();
 
     // Send OTP via email
-    await transpoter.sendMail({
+    await resend.emails.send({
       to: email,
-      from: process.env.EMAIL_USER,
+      from: EMAIL_FROM,
       subject: "Password Reset OTP",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto;">
