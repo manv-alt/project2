@@ -34,12 +34,17 @@ const register = async (req, res) => {
     otpExpiry: Date.now() + 5 * 60 * 1000,
   });
      
-    await resend.emails.send({
+    const { data: resendData, error: resendError } = await resend.emails.send({
       to: email,
       from: EMAIL_FROM,
       subject: "Verify your account",
       html: `<p>hi ${name},<br>your OTP is: <strong>${otp}</strong><br>valid for 5 minutes.</p>`
     });
+    
+    if (resendError) {
+      console.error("Resend API Error:", resendError);
+      return resend.status(500).json({ msg: "Failed to send OTP email: " + resendError.message });
+    }
     const io = req.app.get("io");
     io.emit("dashboardUpdate");
 
@@ -102,7 +107,7 @@ const resendOtp = async (req, res) => {
     user.otpExpiry = Date.now() + 5 * 60 * 1000;
     await user.save();
 
-    await resend.emails.send({
+    const { error: resendError } = await resend.emails.send({
       to: user.email,
       from: EMAIL_FROM,
       subject: "Resend OTP",
@@ -113,6 +118,11 @@ const resendOtp = async (req, res) => {
         <p>Valid for 5 minutes</p>
       `,
     });
+    
+    if (resendError) {
+      console.error("Resend API Error:", resendError);
+      return res.status(500).json({ msg: "Failed to resend OTP via Resend: " + resendError.message });
+    }
 
     res.json({ msg: "OTP resent successfully" });
   } catch (error) {
@@ -374,7 +384,7 @@ const forgotPassword = async (req, res) => {
     await user.save();
 
     // Send OTP via email
-    await resend.emails.send({
+    const { error: resendError } = await resend.emails.send({
       to: email,
       from: EMAIL_FROM,
       subject: "Password Reset OTP",
@@ -389,6 +399,11 @@ const forgotPassword = async (req, res) => {
         </div>
       `,
     });
+    
+    if (resendError) {
+      console.error("Resend API Error:", resendError);
+      return res.status(500).json({ msg: "Failed to send Password Reset OTP: " + resendError.message });
+    }
 
     res.status(200).json({ msg: "OTP sent successfully to your email", email });
   } catch (error) {
