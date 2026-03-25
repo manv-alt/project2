@@ -30,6 +30,7 @@ const server = http.createServer(app);
 // ✅ CORRECTED CORS CONFIG - These are your ACTUAL domains
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:5174",
   "http://localhost:5713",
   // ✅ YOUR ACTUAL VERCEL DEPLOYMENT URL
    "https://project2-2tyu-git-main-manv-alts-projects.vercel.app",

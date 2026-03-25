@@ -5,12 +5,16 @@ import jwt from "jsonwebtoken";
 import { loginSchema, signupvalid, } from "../validator/authvalid.js";
 import UserModel from "../Models/Registermodel.js";
 import AddressModel from "../Models/Address.js";
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import tempotp from "../Models/TempOtpModel.js";
 
-console.log("DEBUG - Resend Key:", process.env.RESEND_API_KEY ? "Loaded (Secret)" : "NOT LOADED");
-const resend = new Resend(process.env.RESEND_API_KEY);
-const EMAIL_FROM = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 const register = async (req, res) => {
   try {
@@ -34,17 +38,12 @@ const register = async (req, res) => {
     otpExpiry: Date.now() + 5 * 60 * 1000,
   });
      
-    const { data: resendData, error: resendError } = await resend.emails.send({
+    await transporter.sendMail({
       to: email,
-      from: EMAIL_FROM,
+      from: process.env.EMAIL_USER,
       subject: "Verify your account",
-      html: `<p>hi ${name},<br>your OTP is: <strong>${otp}</strong><br>valid for 5 minutes.</p>`
+      text: `Hi ${name},\nYour OTP is: ${otp}\nValid for 5 minutes.`,
     });
-    
-    if (resendError) {
-      console.error("Resend API Error:", resendError);
-      return resend.status(500).json({ msg: "Failed to send OTP email: " + resendError.message });
-    }
     const io = req.app.get("io");
     io.emit("dashboardUpdate");
 
@@ -107,22 +106,12 @@ const resendOtp = async (req, res) => {
     user.otpExpiry = Date.now() + 5 * 60 * 1000;
     await user.save();
 
-    const { error: resendError } = await resend.emails.send({
+    await transporter.sendMail({
       to: user.email,
-      from: EMAIL_FROM,
+      from: process.env.EMAIL_USER,
       subject: "Resend OTP",
-      html: `
-        <h3>Hello ${user.name}</h3>
-        <p>Your new OTP:</p>
-        <h2>${otp}</h2>
-        <p>Valid for 5 minutes</p>
-      `,
+      html: `<h3>Hello ${user.name}</h3><p>Your new OTP:</p><h2>${otp}</h2><p>Valid for 5 minutes</p>`,
     });
-    
-    if (resendError) {
-      console.error("Resend API Error:", resendError);
-      return res.status(500).json({ msg: "Failed to resend OTP via Resend: " + resendError.message });
-    }
 
     res.json({ msg: "OTP resent successfully" });
   } catch (error) {
@@ -384,9 +373,9 @@ const forgotPassword = async (req, res) => {
     await user.save();
 
     // Send OTP via email
-    const { error: resendError } = await resend.emails.send({
+    await transporter.sendMail({
       to: email,
-      from: EMAIL_FROM,
+      from: process.env.EMAIL_USER,
       subject: "Password Reset OTP",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto;">
@@ -399,11 +388,6 @@ const forgotPassword = async (req, res) => {
         </div>
       `,
     });
-    
-    if (resendError) {
-      console.error("Resend API Error:", resendError);
-      return res.status(500).json({ msg: "Failed to send Password Reset OTP: " + resendError.message });
-    }
 
     res.status(200).json({ msg: "OTP sent successfully to your email", email });
   } catch (error) {
